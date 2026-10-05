@@ -1,0 +1,55 @@
+parallel-jobs = 1
+
+# add 'enabled = false' for not patching a specific app or remove it from the config
+# see https://github.com/j-hc/revanced-magisk-module/blob/main/CONFIG.md for more detailed explanations
+#
+# package-id identifies the app; downloads are tried in this order:
+# archive-dlurl, then apk-fetch (apkcombo -> apkpure -> apkmirror).
+
+[YouTube]
+patches-source = "anddea/revanced-patches"
+package-id = "com.google.android.youtube"
+archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.youtube"
+
+[Music]
+patches-source = "anddea/revanced-patches"
+package-id = "com.google.android.apps.youtube.music"
+archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.apps.youtube.music"
+included-patches = ["Disable music video in album"]
+
+[GooglePhotos]
+enabled = false
+patches-source = "RookieEnough/De-Vanced"
+package-id = "com.google.android.apps.photos"
+archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.apps.photos"
+
+[Reddit]
+package-id = "com.reddit.frontpage"
+archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.reddit.frontpage"
+
+[Messenger]
+enabled = false
+package-id = "com.facebook.orca"
+excluded-patches = ["Disable switching emoji to sticker"]
+
+[Facebook]
+enabled = false
+package-id = "com.facebook.katana"
+
+[Twitter]
+patches-source = "crimera/piko"
+package-id = "com.twitter.android"
+archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.twitter.android"
+
+[Instagram]
+patches-source = "crimera/piko"
+package-id = "com.instagram.android"
+
+[Pixiv]
+enabled = false
+package-id = "jp.pxv.android"
+
+[Line]
+patches-source = "andrewliang25/morphe-patches"
+package-id = "jp.naver.line.android"
+archive-dlurl = "https://archive.org/download/8LWXpg/apks/jp.naver.line.android"

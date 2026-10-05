@@ -1,0 +1,33 @@
+line-length = 120
+
+[format]
+indent-style = "tab"
+docstring-code-format = true
+line-ending = "lf"
+
+[lint]
+select = [
+  "E",
+  "W",      # pycodestyle
+  "F",      # pyflakes
+  "I",      # isort
+  "B",      # bugbear (real bug patterns)
+  "UP",     # pyupgrade
+  "C4",     # comprehension cleanups
+  "SIM",    # simplifications
+  "RUF",    # Ruff-specific
+  "PT",     # pytest style
+  "PTH",    # prefer pathlib
+  "N",      # pep8-naming
+  "S",      # bandit security checks
+  "ASYNC",  # async pitfalls
+]
+ignore = [
+  "E501",   # line length is the formatter's job
+  "W191",
+  "S603",
+  "S607"
+]
+
+# Don't auto-delete things while you're mid-edit
+unfixable = ["F401", "F841"]

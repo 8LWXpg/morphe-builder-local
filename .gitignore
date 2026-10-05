@@ -1,0 +1,7 @@
+bin/
+build/
+temp/
+.venv/
+build.md
+__pycache__/
+*.egg-info/
