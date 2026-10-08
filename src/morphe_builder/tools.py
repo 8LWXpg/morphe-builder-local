@@ -1,9 +1,5 @@
-from morphe_builder.log import setup
-import os
 import json
 import logging
-import platform
-import re
 import subprocess
 import sys
 import tempfile
@@ -15,19 +11,17 @@ from pathlib import Path
 from subprocess import CompletedProcess
 from typing import Any, Self
 
-from morphe_builder.config import MORPHE_TAG
+from .config import PatchVersion
+from .log import setup
+from .shared import ARCH, BIN_DIR, _download, _gh
 
 logger = logging.getLogger(__name__)
 
-BIN_DIR = Path("bin")
 CURL_IMPERSONATE_VER = "v2.2.3"
-
-ARCH = platform.machine().lower().replace("amd64", "x86_64").replace("arm64", "aarch64")
-MORPHE_VERSION = re.compile(f"latest|dev|{MORPHE_TAG}")
 
 
 @dataclass
-class Exe:
+class Installable:
 	install_dir: Path
 	install: Callable[[Path], Path]
 	path: Path = field(init=False)
@@ -44,51 +38,17 @@ class Exe:
 		return subprocess.run([self.path, *args], **kw)
 
 
-def _gh(*args: str) -> str:
-	return subprocess.run(["gh", *args], check=True, capture_output=True, text=True).stdout
-
-
-def _download(repo: str, pattern: str, dir: Path, tag: str = "") -> None:
-	subprocess.run(
-		[
-			"gh",
-			"release",
-			"download",
-			tag,
-			"--repo",
-			repo,
-			"--pattern",
-			pattern,
-			"--dir",
-			str(dir),
-		],
-		check=True,
-	)
-
-
 @cache
-def prebuilt(repo: str, version: str, kind: str) -> tuple[Path, str]:
+def prebuilt(repo: str, version: PatchVersion, kind: str) -> tuple[Path, str]:
 	"""a patches bundle or cli jar in bin/, downloaded on first use, plus changelog notes"""
-	if not MORPHE_VERSION.fullmatch(version):
-		raise RuntimeError(
-			f"'{version}' is not a valid option for {kind}-version: expected 'latest', 'dev' or a tag like v1.45.0"
-		)
 	if version == "dev":
-		listing = json.loads(_gh("release", "list", "--repo", repo, "--json", "tagName"))
-		tags = [release["tagName"] for release in listing]
-		if not tags:
-			raise RuntimeError(f"No releases found in '{repo}'")
-		# a suffix never wins, same as bash's `sort -s -t- -k1,1Vr`
-		version = max(
-			tags,
-			key=lambda tag: tuple(int(x) for x in tag.split("-")[0].removeprefix("v").split(".")),
-		)
+		version = json.loads(_gh("release", "list", "-R", repo, "--json", "tagName", "-L", "1", "-q", ".[0].tagName"))
 	# gh resolves an empty tag to the latest release
 	tag = "" if version == "latest" else version
 	pattern = "*" if version == "latest" else version.removeprefix("v")
 
-	# keyed by repo, two sources can ship the same asset name
-	directory = BIN_DIR / repo.replace("/", "-")
+	# keyed by user/repo, two sources can ship the same asset name
+	directory = BIN_DIR / repo
 	directory.mkdir(parents=True, exist_ok=True)
 	globs = [f"*patches-{pattern}.*"] if kind == "patches" else [f"*cli-{pattern}*.jar", f"*desktop-{pattern}*.jar"]
 	stable_only = "dev" not in pattern
@@ -106,7 +66,7 @@ def prebuilt(repo: str, version: str, kind: str) -> tuple[Path, str]:
 			logger.info("Using '%s'", cached)
 			return cached, ""
 
-	release: dict[str, Any] = json.loads(_gh("release", "view", tag, "--repo", repo, "--json", "tagName,assets"))
+	release: dict[str, Any] = json.loads(_gh("release", "view", tag, "-R", repo, "--json", "tagName,assets"))
 	# the first asset that is not a signature or a manifest
 	asset = next(
 		(a["name"] for a in release["assets"] if not a["name"].endswith((".asc", ".json"))),
@@ -139,19 +99,20 @@ def install_apk_fetch(install_dir: Path) -> Path:
 	archive_dir = f"apk-fetch-{ARCH}-{target}"
 	bin_full = install_dir / bin
 	if bin_full.exists():
+		logger.info(f"apk-fetch already installed at '{bin_full}'")
 		return bin_full
 
 	install_dir.mkdir(parents=True, exist_ok=True)
 	asset = f"{archive_dir}.zip"
 	with tempfile.TemporaryDirectory() as scratch:
-		_download("8LWXpg/apk-fetch", asset, Path(scratch))
+		_download("8LWXpg/apk-fetch", [asset], Path(scratch))
 		with (
 			zipfile.ZipFile(Path(scratch) / asset) as archive,
 			archive.open(f"{archive_dir}/{bin}") as unpacked,
 		):
 			bin_full.write_bytes(unpacked.read())
 	bin_full.chmod(0o755)
-	logger.info("Installed '%s'", bin_full)
+	logger.info("apk-fetch installed at '%s'", bin_full)
 	return bin_full
 
 
@@ -165,21 +126,26 @@ def install_curl(install_dir: Path) -> Path:
 	}[sys.platform]
 	bin_full = install_dir / bin
 	if bin_full.exists():
+		logger.info(f"curl-impersonate already installed at '{bin_full}'")
 		return bin_full
 
 	install_dir.mkdir(parents=True, exist_ok=True)
 	asset = f"curl-impersonate-{CURL_IMPERSONATE_VER}.{ARCH}-{target}.tar.gz"
 	with tempfile.TemporaryDirectory() as scratch:
-		_download("lexiforest/curl-impersonate", asset, Path(scratch), CURL_IMPERSONATE_VER)
-		subprocess.run(["tar", "-xvzf", f"{scratch}/{asset}", "-C", install_dir], stdout=subprocess.DEVNULL)
+		_download("lexiforest/curl-impersonate", [asset], Path(scratch), CURL_IMPERSONATE_VER)
+		subprocess.run(
+			["tar", "-xvzf", f"{scratch}/{asset}", "-C", install_dir],
+			stdout=subprocess.DEVNULL,
+			stderr=subprocess.DEVNULL,
+		)
 
 	bin_full.chmod(0o755)
-	logger.info("Installed '%s'", bin_full)
+	logger.info("curl-impersonate installed at '%s'", bin_full)
 	return bin_full
 
 
-CURL = Exe(BIN_DIR.joinpath("curl-impersonate"), install_curl)
-APK_FETCH = Exe(BIN_DIR.joinpath("apk-fetch"), install_apk_fetch)
-
 if __name__ == "__main__":
 	setup()
+
+CURL = Installable(BIN_DIR.joinpath("curl-impersonate"), install_curl)
+APK_FETCH = Installable(BIN_DIR.joinpath("apk-fetch"), install_apk_fetch)

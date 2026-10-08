@@ -1,4 +1,4 @@
-default:
+_default:
     @just --list
 
 check:
@@ -6,14 +6,11 @@ check:
     uv run ruff check
     uv run pyrefly check
 
-build *apps:
-    uv run builder {{apps}}
+ipython:
+    uv run ipython
 
 clean:
     rm -rf temp build
 
-install-apk-fetch:
-    uv run python -c "from builder.scripts import APK_FETCH; print(APK_FETCH)"
-
-install-curl:
-    uv run python -c "from builder.scripts import CURL; print(CURL)"
+install_tools:
+    uv run -m morphe_builder.tools
