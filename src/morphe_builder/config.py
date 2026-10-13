@@ -1,7 +1,6 @@
-import re
 import tomllib
 from pathlib import Path
-from typing import Annotated, Any, Literal, Self
+from typing import Annotated, Any, Self
 
 from pydantic import BaseModel, ConfigDict, StringConstraints, model_validator
 
@@ -15,38 +14,38 @@ PatchVersion = Annotated[str, StringConstraints(pattern=PATCH_VERSION_RE)]
 
 
 class Model(BaseModel):
-	model_config = ConfigDict(extra="forbid", alias_generator=lambda name: name.replace("_", "-"))
+    model_config = ConfigDict(extra="forbid", alias_generator=lambda name: name.replace("_", "-"))
 
 
-class App(Model):
-	enabled: bool = True
-	package_id: str
-	app_name: str
-	patch_source: str = "MorpheApp/morphe-patches"
-	patch_version: PatchVersion = "latest"
-	version: ApkVersion = "auto"
-	archive_dlurl: str = ""
-	included_patches: list[str] = []
-	excluded_patches: list[str] = []
-	exclusive_patches: bool = False
-	patcher_args: str = ""
+class AppConfig(Model):
+    enabled: bool = True
+    package_id: str
+    app_name: str
+    patch_source: str = "MorpheApp/morphe-patches"
+    patch_version: PatchVersion = "latest"
+    version: ApkVersion = "auto"
+    archive_dlurl: str = ""
+    included_patches: list[str] = []
+    excluded_patches: list[str] = []
+    exclusive_patches: bool = False
+    patcher_args: str = ""
 
 
 class Config(Model):
-	parallel_jobs: int = 1
-	cli_version: PatchVersion = "latest"
-	apps: dict[str, App]
+    parallel_jobs: int = 1
+    cli_version: PatchVersion = "latest"
+    apps: dict[str, AppConfig]
 
-	@model_validator(mode="before")
-	@classmethod
-	def _group_apps(cls, raw: Any) -> Any:
-		if not isinstance(raw, dict):
-			return raw
-		scalars = {k: v for k, v in raw.items() if not isinstance(v, dict)}
-		apps = {name: {"app-name": name, **table} for name, table in raw.items() if isinstance(table, dict)}
-		return {**scalars, "apps": apps}
+    @model_validator(mode="before")
+    @classmethod
+    def _group_apps(cls, raw: Any) -> Any:
+        if not isinstance(raw, dict):
+            return raw
+        scalars = {k: v for k, v in raw.items() if not isinstance(v, dict)}
+        apps = {name: {"app-name": name, **table} for name, table in raw.items() if isinstance(table, dict)}
+        return {**scalars, "apps": apps}
 
-	@classmethod
-	def load(cls, path: str | Path = "config.toml") -> Self:
-		with Path(path).open("rb") as f:
-			return cls.model_validate(tomllib.load(f))
+    @classmethod
+    def load(cls, path: str | Path = "config.toml") -> Self:
+        with Path(path).open("rb") as f:
+            return cls.model_validate(tomllib.load(f))

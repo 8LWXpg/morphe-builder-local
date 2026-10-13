@@ -1,7 +1,6 @@
 line-length = 120
 
 [format]
-indent-style = "tab"
 docstring-code-format = true
 line-ending = "lf"
 
