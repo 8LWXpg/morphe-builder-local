@@ -10,9 +10,23 @@ builder = "morphe_builder.__main__:main"
 
 [dependency-groups]
 dev = [
+  "import-linter>=2.15",
   "ipython>=9.17.1",
   "pyrefly>=1.3.2",
   "ruff>=0.16.10",
+]
+
+[tool.importlinter]
+root_package = "morphe_builder"
+
+[[tool.importlinter.contracts]]
+name = "layers"
+type = "layers"
+layers = [
+  "morphe_builder.__main__",
+  "morphe_builder.app",
+  "morphe_builder.patch | morphe_builder.tools",
+  "morphe_builder.download | morphe_builder.config | morphe_builder.log",
 ]
 
 [tool.pyrefly]

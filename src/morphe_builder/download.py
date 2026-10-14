@@ -8,11 +8,11 @@ BIN_DIR = Path("bin")
 ARCH = platform.machine().lower().replace("amd64", "x86_64").replace("arm64", "aarch64")
 
 
-def _gh(*args: str) -> str:
+def gh(*args: str) -> str:
     return subprocess.run(["gh", *args], check=True, capture_output=True, text=True).stdout.strip()
 
 
-def _download(repo: str, patterns: list[str], dir: Path, tag: str = "") -> None:
+def gh_asset(repo: str, patterns: list[str], dir: Path, tag: str = "") -> None:
     subprocess.run(
         [
             "gh",
