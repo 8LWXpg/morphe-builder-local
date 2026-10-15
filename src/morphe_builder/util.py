@@ -27,7 +27,7 @@ class _Formatter(logging.Formatter):
         return f"{RED}[-]{RESET} {msg}"
 
 
-def setup(level: int = logging.INFO) -> None:
+def logger_setup(level: int = logging.INFO) -> None:
     log = logging.getLogger()
     log.handlers.clear()  # idempotent
     handler = logging.StreamHandler()
@@ -41,6 +41,7 @@ def setup(level: int = logging.INFO) -> None:
 
 # region download
 BIN_DIR = Path("bin")
+APK_DIR = BIN_DIR / "apk"
 ARCH = platform.machine().lower().replace("amd64", "x86_64").replace("arm64", "aarch64")
 
 
@@ -59,7 +60,7 @@ def gh_asset(repo: str, patterns: list[str], dir: Path, tag: str = "") -> None:
             repo,
             *chain.from_iterable(("-p", p) for p in patterns),
             "-D",
-            str(dir),
+            dir,
         ],
         check=True,
     )

@@ -11,7 +11,7 @@ from .util import BIN_DIR, gh, gh_asset
 logger = logging.getLogger(__name__)
 
 # app versions: 2+ components, any suffix (12.19.1-release.0, 1.2, 2026.24.0)
-APK_VERSION_RE = r"^(auto|experimental|latest|v?\d+(\.\d+)*(-.*)?)$"
+APK_VERSION_RE = r"^(latest|dev|v?\d+(\.\d+)*(-.*)?)$"
 ApkVersion = Annotated[str, StringConstraints(pattern=APK_VERSION_RE)]
 
 # morphe patches / cli tags: always vX.Y.Z or vX.Y.Z-dev.N, the v is optional
@@ -83,7 +83,7 @@ class AppConfig(Model):
     app_name: str
     patch_source: str = "MorpheApp/morphe-patches"
     patch_version: PatchVersion = "latest"
-    version: ApkVersion = "auto"
+    version: ApkVersion = "latest"
     archive_dlurl: str = ""
     included_patches: list[str] = []
     excluded_patches: list[str] = []

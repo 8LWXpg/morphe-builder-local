@@ -23,7 +23,7 @@ enabled           = true       # default: true
 package-id        = "com.spotify.music"  # required
 patch-source      = "MorpheApp/morphe-patches"  # default: "MorpheApp/morphe-patches"
 patch-version     = "latest"   # default: "latest"
-version           = "auto"     # default: "auto"
+version           = "latest"     # default: "latest"
 archive-dlurl     = ""         # default: ""
 included-patches  = ["Some Patch"]  # default: []
 excluded-patches  = ["Some Patch", "Some Other Patch"]  # default: []
@@ -39,7 +39,7 @@ patcher-args      = """\
 - `app-name` (string, default: table name) — Display/release name used for this app. If omitted, it defaults to the table name.
 - `patch-source` (string, default: `"MorpheApp/morphe-patches"`) — Repository to fetch the patches bundle from.
 - `patch-version` (string, default: `"latest"`) — Patches bundle version. Accepted: `"latest"`, `"dev"`, or `v?X.Y.Z` (optionally `-dev.N`), e.g. `"v2.160.0"`.
-- `version` (string, default: `"auto"`) — Base APK version to use. Accepted: `"auto"`, `"experimental"`, `"latest"`, or a specific version number (e.g. `"17.40.41"`, may include suffixes like `"-release.0"`).
+- `version` (string, default: `"latest"`) — Base APK version to use. Accepted: `"latest"`, `"dev"` or a specific version number (e.g. `"17.40.41"`, may include suffixes like `"-release.0"`).
 - `archive-dlurl` (string, default: `""`) — Optional `archive.org` download URL. If set, this source is tried first before fallback APK sources (`dl-apk.sh`: archive-dlurl → apk-fetch: apkcombo → apkpure → apkmirror).
 - `included-patches` (list[str], default: `[]`) — List of non-default patches to include.
 - `excluded-patches` (list[str], default: `[]`) — List of patches to exclude.

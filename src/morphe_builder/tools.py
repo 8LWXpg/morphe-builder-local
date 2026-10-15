@@ -8,20 +8,26 @@ from functools import partial
 from pathlib import Path
 from typing import Self
 
+from pydantic import BaseModel
+
 from .config import ApkVersion
-from .util import ARCH, BIN_DIR, Lazy, gh_asset, setup
+from .util import ARCH, BIN_DIR, Lazy, gh_asset, logger_setup
 
 logger = logging.getLogger(__name__)
 
 CURL_IMPERSONATE_VER = "v2.2.3"
+CURL_IMPERSONATE_WRAPPER = "curl_chrome131_android"
 
 
-@dataclass
-class Apk:
+class Apk(BaseModel):
     path: Path
     provider: str
     version: ApkVersion
     arch: str
+
+    @classmethod
+    def from_json(cls, text: str) -> Self:
+        return cls.model_validate_json(text)
 
 
 @dataclass
@@ -59,7 +65,7 @@ class ApkFetch:
     @staticmethod
     def _install_curl(install_dir: Path) -> Path:
         """Installs and use curl-impersonate"""
-        bin = f"curl_chrome131_android{'.bat' if sys.platform == 'win32' else ''}"
+        bin = f"{CURL_IMPERSONATE_WRAPPER}{'.bat' if sys.platform == 'win32' else ''}"
         target = {
             "linux": "linux-musl",
             "darwin": "macos",
@@ -85,21 +91,25 @@ class ApkFetch:
         return bin_full
 
     def get(self, pkg: str, version: ApkVersion, out_dir: Path):
-        subprocess.run(
-            [
-                self.path,
-                "get",
-                pkg,
-                "--version",
-                version,
-                "--arch",
-                "arm64-v8a",
-                "--output",
-                out_dir,
-                "--json",
-            ]
+        return Apk.from_json(
+            subprocess.run(
+                [
+                    self.path,
+                    "get",
+                    pkg,
+                    "--version",
+                    version,
+                    "--arch",
+                    "arm64-v8a",
+                    "--output",
+                    out_dir,
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                env={"APK_FETCH_CURL": str(self.curl)},
+            ).stdout.strip()
         )
-        return
 
 
 APK_FETCH = Lazy(
@@ -111,5 +121,5 @@ APK_FETCH = Lazy(
 )
 
 if __name__ == "__main__":
-    setup()
+    logger_setup()
     APK_FETCH()

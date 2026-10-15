@@ -3,7 +3,10 @@ name = "morphe-builder"
 version = "0.0.0"
 description = "Build patched Android APKs with Morphe"
 requires-python = ">=3.13"
-dependencies = ["pydantic>=2.13.5"]
+dependencies = [
+  "parse>=1.22.3",
+  "pydantic>=2.13.5",
+]
 
 [project.scripts]
 builder = "morphe_builder.__main__:main"
@@ -25,7 +28,7 @@ type = "layers"
 layers = [
   "morphe_builder.__main__",
   "morphe_builder.app",
-  "morphe_builder.tools | morphe_builder.config",
+  "morphe_builder.tools : morphe_builder.config",
   "morphe_builder.util",
 ]
 

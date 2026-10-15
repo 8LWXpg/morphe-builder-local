@@ -1,12 +1,17 @@
 import logging
+import subprocess
 from dataclasses import dataclass
+from itertools import chain
 from pathlib import Path
 from typing import Self
 
 from .config import AppConfig, Patch, PatchKey
 from .tools import ApkFetch
+from .util import APK_DIR
 
 logger = logging.getLogger(__name__)
+
+BUILD_DIR = Path("build")
 
 
 @dataclass
@@ -16,13 +21,58 @@ class App:
     cli: Path
 
     @classmethod
-    def from_config(cls, spec: AppConfig, patches: dict[PatchKey, Patch], cli: Path) -> Self | None:
+    def from_appconfig(
+        cls, spec: AppConfig, patches: dict[PatchKey, Patch], cli: Path
+    ) -> Self | None:
         patch = patches.get(PatchKey(spec.patch_source, spec.patch_version))
         if patch is None:
-            logger.error(f"{spec.patch_source}:{spec.patch_version} is not downloaded")
+            logger.error(f"failed to download {spec.patch_source}:{spec.patch_version}")
             return None
         else:
             return cls(spec, patch, cli)
 
-    def build(self, apk_fetch: ApkFetch) -> Path | None:
+    def build(self, apk_fetch: ApkFetch) -> None:
+        ver = self._parse_ver()
+        logger.info(f"Chose '{ver}' for '{self.spec.package_id}'")
+        apk = apk_fetch.get(self.spec.package_id, ver, APK_DIR)
+        subprocess.run(
+            [
+                "java",
+                "-jar",
+                self.cli,
+                "patch",
+                apk.path,
+                *chain.from_iterable(f"-d={d}" for d in self.spec.excluded_patches),
+                *chain.from_iterable(f"-e={e}" for e in self.spec.included_patches),
+                *(["--excllusive"] if self.spec.exclusive_patches else []),
+                "--keystore=Morphe.keystore",
+                f"-o={BUILD_DIR}",
+                f"-p={self.patch.mpp}",
+                "--striplibs=arm64-v8a",
+            ]
+        )
         return
+
+    def _parse_ver(self):
+        if self.spec.version not in ["dev", "latest"]:
+            return self.spec.version
+
+        return (
+            subprocess.run(
+                [
+                    "java",
+                    "-jar",
+                    self.cli,
+                    "list-versions",
+                    f"--patches={self.patch.mpp}",
+                    f"-f={self.spec.package_id}",
+                    *(["-x"] if self.spec.version == "dev" else []),
+                ],
+                text=True,
+                capture_output=True,
+                check=True,
+            )
+            .stdout.strip()
+            .split("\n")[2]
+            .split()[0]
+        )
