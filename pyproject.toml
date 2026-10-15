@@ -25,8 +25,8 @@ type = "layers"
 layers = [
   "morphe_builder.__main__",
   "morphe_builder.app",
-  "morphe_builder.patch | morphe_builder.tools",
-  "morphe_builder.download | morphe_builder.config | morphe_builder.log",
+  "morphe_builder.tools | morphe_builder.config",
+  "morphe_builder.util",
 ]
 
 [tool.pyrefly]
