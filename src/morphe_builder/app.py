@@ -11,8 +11,6 @@ from .util import APK_DIR
 
 logger = logging.getLogger(__name__)
 
-BUILD_DIR = Path("build")
-
 
 @dataclass
 class App:
@@ -26,7 +24,7 @@ class App:
     ) -> Self | None:
         patch = patches.get(PatchKey(spec.patch_source, spec.patch_version))
         if patch is None:
-            logger.error(f"failed to download {spec.patch_source}:{spec.patch_version}")
+            logger.error(f"{spec.patch_source}:{spec.patch_version} is not downloaded")
             return None
         else:
             return cls(spec, patch, cli)
@@ -41,14 +39,14 @@ class App:
                 "-jar",
                 self.cli,
                 "patch",
-                apk.path,
+                apk,
                 *chain.from_iterable(f"-d={d}" for d in self.spec.excluded_patches),
-                *chain.from_iterable(f"-e={e}" for e in self.spec.included_patches),
+                *chain.from_iterable(("-e", e) for e in self.spec.included_patches),
                 *(["--excllusive"] if self.spec.exclusive_patches else []),
                 "--keystore=Morphe.keystore",
-                f"-o={BUILD_DIR}",
                 f"-p={self.patch.mpp}",
                 "--striplibs=arm64-v8a",
+                *(self.spec.patcher_args),
             ]
         )
         return

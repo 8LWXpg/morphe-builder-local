@@ -1,4 +1,5 @@
 import logging
+import os
 import subprocess
 import sys
 import tempfile
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 CURL_IMPERSONATE_VER = "v2.2.3"
 CURL_IMPERSONATE_WRAPPER = "curl_chrome131_android"
+APK_FETCH_VER = "v1.2.0"
 
 
 class Apk(BaseModel):
@@ -44,7 +46,9 @@ class ApkFetch:
             "win32": "pc-windows-msvc",
         }[sys.platform]
         archive_dir = f"apk-fetch-{ARCH}-{target}"
-        bin_full = install_dir / bin
+        bin_full = (
+            install_dir / f"apk-fetch-{APK_FETCH_VER}{'.exe' if sys.platform == 'win32' else ''}"
+        )
         if bin_full.exists():
             logger.info(f"apk-fetch already installed at '{bin_full}'")
             return cls(bin_full, cls._install_curl(curl_dir))
@@ -90,26 +94,34 @@ class ApkFetch:
         logger.info("curl-impersonate installed at '%s'", bin_full)
         return bin_full
 
-    def get(self, pkg: str, version: ApkVersion, out_dir: Path):
+    def get(self, pkg: str, version: ApkVersion, out_dir: Path) -> Path:
+        out_apk = out_dir.glob(f"{pkg}-{version}-*.apk")
+        for p in out_apk:
+            logger.info(f"found {p} on disk")
+            return p
+        cmd = [
+            self.path,
+            "get",
+            pkg,
+            "--version",
+            version,
+            "--arch",
+            "arm64-v8a",
+            "--out-dir",
+            out_dir,
+            "--json",
+        ]
+        logger.info(cmd)
         return Apk.from_json(
             subprocess.run(
-                [
-                    self.path,
-                    "get",
-                    pkg,
-                    "--version",
-                    version,
-                    "--arch",
-                    "arm64-v8a",
-                    "--output",
-                    out_dir,
-                    "--json",
-                ],
-                capture_output=True,
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=None,
                 text=True,
-                env={"APK_FETCH_CURL": str(self.curl)},
+                check=True,
+                env={**os.environ, "APK_FETCH_CURL": str(self.curl.absolute())},
             ).stdout.strip()
-        )
+        ).path
 
 
 APK_FETCH = Lazy(

@@ -2,7 +2,8 @@ _default:
     @just --list
 
 build:
-    uv run builder
+    @just check
+    uv run -m morphe_builder
 
 check:
     uv run lint-imports --no-logo

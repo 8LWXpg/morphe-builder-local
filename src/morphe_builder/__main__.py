@@ -26,10 +26,12 @@ def main():
     with ThreadPoolExecutor(cfg.parallel_jobs) as ex:
         results: Iterator[tuple[PatchKey, Patch]] = ex.map(lambda k: (k, k.download()), patch_keys)  # pyrefly: ignore [implicit-any-lambda]
         patches = {k: v for k, v in results if v is not None}
+        changelog.extend(str(t[1]) for t in results)
 
     apps = config_to_app(cfg, patches, cli)
     with ThreadPoolExecutor(cfg.parallel_jobs) as ex:
-        results = ex.map(lambda a: a.build(patches), apps)  # pyrefly: ignore [implicit-any-lambda]
+        # pyrefly: ignore [bad-assignment, implicit-any-lambda]
+        results = list(ex.map(lambda a: a.build(APK_FETCH()), apps))
 
 
 if __name__ == "__main__":

@@ -41,7 +41,7 @@ def logger_setup(level: int = logging.INFO) -> None:
 
 # region download
 BIN_DIR = Path("bin")
-APK_DIR = BIN_DIR / "apk"
+APK_DIR = Path("build")
 ARCH = platform.machine().lower().replace("amd64", "x86_64").replace("arm64", "aarch64")
 
 

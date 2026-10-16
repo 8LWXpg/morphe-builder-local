@@ -28,10 +28,7 @@ archive-dlurl     = ""         # default: ""
 included-patches  = ["Some Patch"]  # default: []
 excluded-patches  = ["Some Patch", "Some Other Patch"]  # default: []
 exclusive-patches = false      # default: false
-patcher-args      = """\
-  -OdarkThemeBackgroundColor=#FF0F0F0F
-  -Oanother-option=value
-  """
+patcher-args      = ["-OdarkThemeBackgroundColor=#FF0F0F0F" "-Oanother-option=value"]
 ```
 
 - `enabled` (bool, default: `true`) — Whether to build this app.
@@ -44,7 +41,7 @@ patcher-args      = """\
 - `included-patches` (list[str], default: `[]`) — List of non-default patches to include.
 - `excluded-patches` (list[str], default: `[]`) — List of patches to exclude.
 - `exclusive-patches` (bool, default: `false`) — If `true`, exclude all patches by default (only patches listed in `included-patches` are applied).
-- `patcher-args` (string, default: `""`) — Optional arguments passed to the Morphe CLI patcher. Multiline strings are supported.
+- `patcher-args` (list[str], default: `[]`) — Additional arguments passed to the Morphe CLI patcher.
 
 ## Notes
 

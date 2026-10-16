@@ -88,7 +88,7 @@ class AppConfig(Model):
     included_patches: list[str] = []
     excluded_patches: list[str] = []
     exclusive_patches: bool = False
-    patcher_args: str = ""
+    patcher_args: list[str] = []
 
 
 class Config(Model):
@@ -105,7 +105,7 @@ class Config(Model):
         apps = {
             name: {"app-name": name, **table}
             for name, table in raw.items()
-            if isinstance(table, dict)
+            if isinstance(table, dict) and table.get("enabled") in (True, None)
         }
         return {**scalars, "apps": apps}
 
