@@ -2,6 +2,8 @@ from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import click
+
 from .app import App
 from .config import Config, Patch, PatchKey
 from .tools import APK_FETCH
@@ -14,7 +16,9 @@ def config_to_app(cfg: Config, patches: dict[PatchKey, Patch], cli: Path) -> lis
     ]
 
 
-def main():
+@click.command()
+@click.option("--app", multiple=True)
+def main(app: list[str]):
     APK_FETCH()
     cfg = Config.load()
     changelog: list[str] = []
@@ -29,6 +33,8 @@ def main():
         changelog.extend(str(t[1]) for t in results)
 
     apps = config_to_app(cfg, patches, cli)
+    if len(app) != 0:
+        apps = [a for a in apps if a.spec.app_name in app]
     with ThreadPoolExecutor(cfg.parallel_jobs) as ex:
         # pyrefly: ignore [bad-assignment, implicit-any-lambda]
         results = list(ex.map(lambda a: a.build(APK_FETCH()), apps))

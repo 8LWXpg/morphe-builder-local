@@ -40,12 +40,15 @@ class App:
                 self.cli,
                 "patch",
                 apk,
-                *chain.from_iterable(f"-d={d}" for d in self.spec.excluded_patches),
+                *chain.from_iterable(("-d", d) for d in self.spec.excluded_patches),
                 *chain.from_iterable(("-e", e) for e in self.spec.included_patches),
                 *(["--excllusive"] if self.spec.exclusive_patches else []),
                 "--keystore=Morphe.keystore",
-                f"-p={self.patch.mpp}",
+                "-p",
+                self.patch.mpp,
                 "--striplibs=arm64-v8a",
+                "-o",
+                APK_DIR / f"out/{self.spec.package_id}-{ver}.apk",
                 *(self.spec.patcher_args),
             ]
         )

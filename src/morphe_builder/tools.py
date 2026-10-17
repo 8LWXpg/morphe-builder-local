@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 CURL_IMPERSONATE_VER = "v2.2.3"
 CURL_IMPERSONATE_WRAPPER = "curl_chrome131_android"
-APK_FETCH_VER = "v1.2.0"
+APK_FETCH_VER = "v1.2.2"
 
 
 class Apk(BaseModel):
@@ -95,26 +95,26 @@ class ApkFetch:
         return bin_full
 
     def get(self, pkg: str, version: ApkVersion, out_dir: Path) -> Path:
-        out_apk = out_dir.glob(f"{pkg}-{version}-*.apk")
+        out_apk = out_dir.glob(f"{pkg}-{version}-*")
         for p in out_apk:
             logger.info(f"found {p} on disk")
             return p
-        cmd = [
-            self.path,
-            "get",
-            pkg,
-            "--version",
-            version,
-            "--arch",
-            "arm64-v8a",
-            "--out-dir",
-            out_dir,
-            "--json",
-        ]
-        logger.info(cmd)
+        logger.info(f"downloading {pkg}")
         return Apk.from_json(
             subprocess.run(
-                cmd,
+                [
+                    self.path,
+                    "get",
+                    pkg,
+                    "--version",
+                    version,
+                    "--arch",
+                    "arm64-v8a",
+                    "--out-dir",
+                    out_dir,
+                    "--no-progress",
+                    "--json",
+                ],
                 stdout=subprocess.PIPE,
                 stderr=None,
                 text=True,

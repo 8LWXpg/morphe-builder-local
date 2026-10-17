@@ -4,6 +4,7 @@ version = "0.0.0"
 description = "Build patched Android APKs with Morphe"
 requires-python = ">=3.13"
 dependencies = [
+  "click>=8.5.0",
   "parse>=1.22.3",
   "pydantic>=2.13.5",
 ]
