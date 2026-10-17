@@ -1,5 +1,6 @@
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from pathlib import Path
 
 import click
@@ -7,7 +8,7 @@ import click
 from .app import App
 from .config import Config, Patch, PatchKey
 from .tools import APK_FETCH
-from .util import logger_setup
+from .util import gh, logger_setup
 
 
 def config_to_app(cfg: Config, patches: dict[PatchKey, Patch], cli: Path) -> list[App]:
@@ -21,7 +22,7 @@ def config_to_app(cfg: Config, patches: dict[PatchKey, Patch], cli: Path) -> lis
 def main(app: list[str]):
     APK_FETCH()
     cfg = Config.load()
-    changelog: list[str] = []
+    changelog: list[str] = ["## Morphe Build"]
     (cli, note) = cfg.fetch_cli()
     changelog.append(note)
 
@@ -36,8 +37,19 @@ def main(app: list[str]):
     if len(app) != 0:
         apps = [a for a in apps if a.spec.app_name in app]
     with ThreadPoolExecutor(cfg.parallel_jobs) as ex:
-        # pyrefly: ignore [bad-assignment, implicit-any-lambda]
-        results = list(ex.map(lambda a: a.build(APK_FETCH()), apps))
+        # pyrefly: ignore[implicit-any-lambda]
+        outs: list[Path] = list(ex.map(lambda a: a.build(APK_FETCH()), apps))
+
+    gh(
+        "release",
+        "create",
+        datetime.now().strftime("%Y.%m.%d"),
+        *([str(p) for p in outs]),
+        "-n",
+        "\n".join(changelog),
+        "-t",
+        "Morphe Build",
+    )
 
 
 if __name__ == "__main__":

@@ -29,10 +29,11 @@ class App:
         else:
             return cls(spec, patch, cli)
 
-    def build(self, apk_fetch: ApkFetch) -> None:
+    def build(self, apk_fetch: ApkFetch) -> Path:
         ver = self._parse_ver()
         logger.info(f"Chose '{ver}' for '{self.spec.package_id}'")
         apk = apk_fetch.get(self.spec.package_id, ver, APK_DIR)
+        out = APK_DIR / f"out/{self.spec.package_id}-{ver}.apk"
         subprocess.run(
             [
                 "java",
@@ -48,11 +49,11 @@ class App:
                 self.patch.mpp,
                 "--striplibs=arm64-v8a",
                 "-o",
-                APK_DIR / f"out/{self.spec.package_id}-{ver}.apk",
+                out,
                 *(self.spec.patcher_args),
             ]
         )
-        return
+        return out
 
     def _parse_ver(self):
         if self.spec.version not in ["dev", "latest"]:
