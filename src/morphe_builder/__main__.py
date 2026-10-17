@@ -1,3 +1,5 @@
+import logging
+import subprocess
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
@@ -8,7 +10,9 @@ import click
 from .app import App
 from .config import Config, Patch, PatchKey
 from .tools import APK_FETCH
-from .util import gh, logger_setup
+from .util import logger_setup
+
+logger = logging.getLogger(__name__)
 
 
 def config_to_app(cfg: Config, patches: dict[PatchKey, Patch], cli: Path) -> list[App]:
@@ -29,9 +33,11 @@ def main(app: list[str]):
     patch_keys = cfg.patches()
     patches: dict[PatchKey, Patch] = {}
     with ThreadPoolExecutor(cfg.parallel_jobs) as ex:
-        results: Iterator[tuple[PatchKey, Patch]] = ex.map(lambda k: (k, k.download()), patch_keys)  # pyrefly: ignore [implicit-any-lambda]
-        patches = {k: v for k, v in results if v is not None}
-        changelog.extend(str(t[1]) for t in results)
+        # pyrefly: ignore [implicit-any-lambda]
+        results = list(ex.map(lambda k: (k, k.download()), patch_keys))
+
+    patches = {k: v for k, v in results if v is not None}
+    changelog.extend(v.changelog for _, v in results if v is not None)
 
     apps = config_to_app(cfg, patches, cli)
     if len(app) != 0:
@@ -40,16 +46,30 @@ def main(app: list[str]):
         # pyrefly: ignore[implicit-any-lambda]
         outs: list[Path] = list(ex.map(lambda a: a.build(APK_FETCH()), apps))
 
-    gh(
-        "release",
-        "create",
-        datetime.now().strftime("%Y.%m.%d"),
-        *([str(p) for p in outs]),
-        "-n",
-        "\n".join(changelog),
-        "-t",
-        "Morphe Build",
+    tag = datetime.now().strftime("%Y.%m.%d")
+    notes = "\n".join(changelog)
+    files = [str(p) for p in outs]
+
+    exists = (
+        subprocess.run(
+            ["gh", "release", "view", tag],
+            capture_output=True,
+        ).returncode
+        == 0
     )
+
+    if exists:
+        logger.info("updating existing release %s...", tag)
+        subprocess.run(["gh", "release", "upload", tag, *files, "--clobber"], check=True)
+        subprocess.run(
+            ["gh", "release", "edit", tag, "-n", notes, "-t", "Morphe Build"], check=True
+        )
+    else:
+        logger.info("creating release %s...", tag)
+        subprocess.run(
+            ["gh", "release", "create", tag, *files, "-n", notes, "-t", "Morphe Build"],
+            check=True,
+        )
 
 
 if __name__ == "__main__":
