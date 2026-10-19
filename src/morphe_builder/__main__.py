@@ -1,6 +1,5 @@
 import logging
 import subprocess
-from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
@@ -44,11 +43,14 @@ def main(app: list[str]):
         apps = [a for a in apps if a.spec.app_name in app]
     with ThreadPoolExecutor(cfg.parallel_jobs) as ex:
         # pyrefly: ignore[implicit-any-lambda]
-        outs: list[Path] = list(ex.map(lambda a: a.build(APK_FETCH()), apps))
+        outs: list[Path | None] = list(ex.map(lambda a: a.build(APK_FETCH()), apps))
 
     tag = datetime.now().strftime("%Y.%m.%d")
     notes = "\n".join(changelog)
-    files = [str(p) for p in outs]
+    files = [str(p) for p in outs if p is not None]
+    if len(files) == 0:
+        logger.error("all build failed")
+        return
 
     exists = (
         subprocess.run(

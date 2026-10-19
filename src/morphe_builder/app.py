@@ -29,31 +29,38 @@ class App:
         else:
             return cls(spec, patch, cli)
 
-    def build(self, apk_fetch: ApkFetch) -> Path:
+    def build(self, apk_fetch: ApkFetch) -> Path | None:
         ver = self._parse_ver()
         logger.info(f"Chose '{ver}' for '{self.spec.package_id}'")
         apk = apk_fetch.get(self.spec.package_id, ver, APK_DIR)
+        if apk is None:
+            return None
+
         out = APK_DIR / f"out/{self.spec.package_id}-{ver}.apk"
-        subprocess.run(
-            [
-                "java",
-                "-jar",
-                self.cli,
-                "patch",
-                apk,
-                *chain.from_iterable(("-d", d) for d in self.spec.excluded_patches),
-                *chain.from_iterable(("-e", e) for e in self.spec.included_patches),
-                *(["--excllusive"] if self.spec.exclusive_patches else []),
-                "--keystore=Morphe.keystore",
-                "-p",
-                self.patch.mpp,
-                "--striplibs=arm64-v8a",
-                "-o",
-                out,
-                *(self.spec.patcher_args),
-            ]
-        )
-        return out
+        try:
+            subprocess.run(
+                [
+                    "java",
+                    "-jar",
+                    self.cli,
+                    "patch",
+                    apk,
+                    *chain.from_iterable(("-d", d) for d in self.spec.excluded_patches),
+                    *chain.from_iterable(("-e", e) for e in self.spec.included_patches),
+                    *(["--excllusive"] if self.spec.exclusive_patches else []),
+                    "--keystore=Morphe.keystore",
+                    "-p",
+                    self.patch.mpp,
+                    "--striplibs=arm64-v8a",
+                    "-o",
+                    out,
+                    *(self.spec.patcher_args),
+                ],
+                check=True,
+            )
+            return out
+        except Exception:
+            return None
 
     def _parse_ver(self):
         if self.spec.version not in ["dev", "latest"]:

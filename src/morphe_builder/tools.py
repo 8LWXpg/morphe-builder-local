@@ -94,34 +94,36 @@ class ApkFetch:
         logger.info("curl-impersonate installed at '%s'", bin_full)
         return bin_full
 
-    def get(self, pkg: str, version: ApkVersion, out_dir: Path) -> Path:
+    def get(self, pkg: str, version: ApkVersion, out_dir: Path) -> Path | None:
         out_apk = out_dir.glob(f"{pkg}-{version}-*")
         for p in out_apk:
             logger.info(f"found {p} on disk")
             return p
         logger.info(f"downloading {pkg}")
-        return Apk.from_json(
-            subprocess.run(
-                [
-                    self.path,
-                    "get",
-                    pkg,
-                    "--version",
-                    version,
-                    "--arch",
-                    "arm64-v8a",
-                    "--out-dir",
-                    out_dir,
-                    "--no-progress",
-                    "--json",
-                ],
-                stdout=subprocess.PIPE,
-                stderr=None,
-                text=True,
-                check=True,
-                env={**os.environ, "APK_FETCH_CURL": str(self.curl.absolute())},
-            ).stdout.strip()
-        ).path
+        try:
+            return Apk.from_json(
+                subprocess.run(
+                    [
+                        self.path,
+                        "get",
+                        pkg,
+                        "--version",
+                        version,
+                        "--arch",
+                        "arm64-v8a",
+                        "--out-dir",
+                        out_dir,
+                        "--no-progress",
+                        "--json",
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=None,
+                    text=True,
+                    env={**os.environ, "APK_FETCH_CURL": str(self.curl.absolute())},
+                ).stdout.strip()
+            ).path
+        except Exception:
+            return None
 
 
 APK_FETCH = Lazy(

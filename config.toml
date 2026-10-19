@@ -28,13 +28,16 @@ package-id = "com.reddit.frontpage"
 archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.reddit.frontpage"
 
 [Messenger]
-enabled = false
+patch-source = "SysAdminDoc/HushMessenger"
 package-id = "com.facebook.orca"
-excluded-patches = ["Disable switching emoji to sticker"]
 
 [Facebook]
-enabled = false
+patch-source = "SysAdminDoc/HushFacebook"
 package-id = "com.facebook.katana"
+
+[Threads]
+patch-source = "SysAdminDoc/HushThreads"
+package-id = "com.instagram.barcelona"
 
 [Twitter]
 patch-source = "crimera/piko"
@@ -50,6 +53,7 @@ enabled = false
 package-id = "jp.pxv.android"
 
 [Line]
+enabled = false
 patch-source = "andrewliang25/morphe-patches"
 package-id = "jp.naver.line.android"
 archive-dlurl = "https://archive.org/download/8LWXpg/apks/jp.naver.line.android"
