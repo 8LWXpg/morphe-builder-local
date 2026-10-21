@@ -25,7 +25,7 @@ def config_to_app(cfg: Config, patches: dict[PatchKey, Patch], cli: Path) -> lis
 def main(app: list[str]):
     APK_FETCH()
     cfg = Config.load()
-    changelog: list[str] = ["## Morphe Build"]
+    changelog: list[str] = []
     (cli, note) = cfg.fetch_cli()
     changelog.append(note)
 
@@ -46,7 +46,7 @@ def main(app: list[str]):
         outs: list[Path | None] = list(ex.map(lambda a: a.build(APK_FETCH()), apps))
 
     tag = datetime.now().strftime("%Y.%m.%d")
-    notes = "\n".join(changelog)
+    notes = "\n\n".join(changelog)
     files = [str(p) for p in outs if p is not None]
     if len(files) == 0:
         logger.error("all build failed")

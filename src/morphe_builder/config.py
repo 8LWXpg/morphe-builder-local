@@ -63,7 +63,7 @@ class PatchKey:
                 return Patch(mpp, changelog.read_text())
 
             gh_asset(self.source, [asset_name], dir, version)
-            note = f"Patches: {self.source}/{asset_name}\n\n[Changelog](https://github.com/{self.source}/releases/tag/{self.version})"
+            note = f"Patches: {self.source}/{asset_name}\n[Changelog](https://github.com/{self.source}/releases/tag/{self.version})"
             changelog.write_text(note)
             logger.info(f"{self.source}:{version} installed at {dir}")
 
@@ -147,7 +147,7 @@ class Config(Model):
             return (jar, changelog.read_text())
 
         gh_asset(morphe_desktop, [asset_name], dir, self.cli_version)
-        note = f"Morphe Desktop: {asset_name}\n\n[Changelog](https://github.com/{morphe_desktop}/release/tag/{self.cli_version})"
+        note = f"Morphe Desktop: {asset_name}\n[Changelog](https://github.com/{morphe_desktop}/release/tag/{self.cli_version})"
         changelog.write_text(note)
 
         return (jar, note)
