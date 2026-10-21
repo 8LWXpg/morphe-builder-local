@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "morphe-builder config",
+  "type": "object",
+  "properties": {
+    "parallel-jobs": {
+      "default": 1,
+      "title": "Parallel-Jobs",
+      "type": "integer"
+    },
+    "cli-version": {
+      "default": "latest",
+      "pattern": "^(latest|dev|v?\\d+\\.\\d+\\.\\d+(-dev\\.\\d+)?)$",
+      "title": "Cli-Version",
+      "type": "string"
+    }
+  },
+  "additionalProperties": {
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "default": true,
+        "title": "Enabled",
+        "type": "boolean"
+      },
+      "package-id": {
+        "title": "Package-Id",
+        "type": "string"
+      },
+      "app-name": {
+        "title": "App-Name",
+        "type": "string"
+      },
+      "patch-source": {
+        "default": "MorpheApp/morphe-patches",
+        "title": "Patch-Source",
+        "type": "string"
+      },
+      "patch-version": {
+        "default": "latest",
+        "pattern": "^(latest|dev|v?\\d+\\.\\d+\\.\\d+(-dev\\.\\d+)?)$",
+        "title": "Patch-Version",
+        "type": "string"
+      },
+      "version": {
+        "default": "latest",
+        "pattern": "^(latest|dev|v?\\d+(\\.\\d+)*(-.*)?)$",
+        "title": "Version",
+        "type": "string"
+      },
+      "archive-dlurl": {
+        "default": "",
+        "title": "Archive-Dlurl",
+        "type": "string"
+      },
+      "included-patches": {
+        "default": [],
+        "items": {
+          "type": "string"
+        },
+        "title": "Included-Patches",
+        "type": "array"
+      },
+      "excluded-patches": {
+        "default": [],
+        "items": {
+          "type": "string"
+        },
+        "title": "Excluded-Patches",
+        "type": "array"
+      },
+      "exclusive-patches": {
+        "default": false,
+        "title": "Exclusive-Patches",
+        "type": "boolean"
+      },
+      "patcher-args": {
+        "default": [],
+        "items": {
+          "type": "string"
+        },
+        "title": "Patcher-Args",
+        "type": "array"
+      }
+    },
+    "required": [
+      "package-id"
+    ],
+    "type": "object"
+  },
+  "$defs": {}
+}

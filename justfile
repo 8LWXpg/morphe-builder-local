@@ -19,3 +19,6 @@ clean:
 
 tools:
     uv run -m morphe_builder.tools
+
+schema:
+    uv run -m morphe_builder.schema
