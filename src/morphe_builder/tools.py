@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 CURL_IMPERSONATE_VER = "v2.2.3"
 CURL_IMPERSONATE_WRAPPER = "curl_chrome131_android"
-APK_FETCH_VER = "v1.2.2"
+APK_FETCH_VER = "v1.3.1"
 
 
 class Apk(BaseModel):

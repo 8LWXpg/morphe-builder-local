@@ -19,12 +19,6 @@ package-id = "com.google.android.apps.youtube.music"
 archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.apps.youtube.music"
 included-patches = ["Disable music video in album"]
 
-[GooglePhotos]
-enabled = false
-patch-source = "RookieEnough/De-Vanced"
-package-id = "com.google.android.apps.photos"
-archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.apps.photos"
-
 [Reddit]
 package-id = "com.reddit.frontpage"
 archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.reddit.frontpage"
