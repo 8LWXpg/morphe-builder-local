@@ -63,6 +63,18 @@ class App:
             return None
 
     def _parse_ver(self):
+        """
+        parse output that should looks like following:
+
+        ```
+        INFO: Morphe data root: bin/MorpheApp/morphe-desktop/morphe-data (JAR-adjacent)
+        INFO: Package name: com.google.android.youtube
+        Most common compatible versions:
+            21.13.164 (74 patches)
+                20.05.46 (74 patches)
+        ```
+        """
+
         if self.spec.version not in ["dev", "latest"]:
             return self.spec.version
 
@@ -82,6 +94,6 @@ class App:
                 check=True,
             )
             .stdout.strip()
-            .split("\n")[2]
+            .split("\n")[3]
             .split()[0]
         )
