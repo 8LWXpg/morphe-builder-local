@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -16,7 +17,7 @@ from .util import ARCH, BIN_DIR, Lazy, gh_asset, logger_setup
 
 logger = logging.getLogger(__name__)
 
-CURL_IMPERSONATE_VER = "v2.2.3"
+CURL_IMPERSONATE_VER = "v2.3.1"
 CURL_IMPERSONATE_WRAPPER = "curl_chrome131_android"
 APK_FETCH_VER = "v1.3.1"
 
@@ -53,6 +54,9 @@ class ApkFetch:
             logger.info(f"apk-fetch already installed at '{bin_full}'")
             return cls(bin_full, cls._install_curl(curl_dir))
 
+        # Remove older versions
+        for f in install_dir.glob("apk-fetch-*"):
+            f.unlink(missing_ok=True)
         install_dir.mkdir(parents=True, exist_ok=True)
         asset = f"{archive_dir}.zip"
         with tempfile.TemporaryDirectory() as scratch:
@@ -68,18 +72,21 @@ class ApkFetch:
 
     @staticmethod
     def _install_curl(install_dir: Path) -> Path:
-        """Installs and use curl-impersonate"""
+        """Installs curl-impersonate at `./{install_dir}/ver` and deletes older ones"""
         bin = f"{CURL_IMPERSONATE_WRAPPER}{'.bat' if sys.platform == 'win32' else ''}"
         target = {
             "linux": "linux-musl",
             "darwin": "macos",
             "win32": "win32",
         }[sys.platform]
+        install_dir = install_dir / CURL_IMPERSONATE_VER
         bin_full = install_dir / bin
         if bin_full.exists():
             logger.info(f"curl-impersonate already installed at '{bin_full}'")
             return bin_full
 
+        # Remove older versions
+        shutil.rmtree(install_dir / "..")
         install_dir.mkdir(parents=True, exist_ok=True)
         asset = f"curl-impersonate-{CURL_IMPERSONATE_VER}.{ARCH}-{target}.tar.gz"
         with tempfile.TemporaryDirectory() as scratch:

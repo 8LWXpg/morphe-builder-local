@@ -71,7 +71,7 @@ class App:
         INFO: Package name: com.google.android.youtube
         Most common compatible versions:
             21.13.164 (74 patches)
-                20.05.46 (74 patches)
+            20.05.46 (74 patches)
         ```
         """
 
