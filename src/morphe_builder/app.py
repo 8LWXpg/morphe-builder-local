@@ -58,6 +58,7 @@ class App:
                 ],
                 check=True,
             )
+            logger.info("built %s", out.name)
             return out
         except Exception:
             return None

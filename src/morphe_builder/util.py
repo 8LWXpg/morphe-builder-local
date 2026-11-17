@@ -70,9 +70,7 @@ def gh_asset(repo: str, patterns: list[str], dir: Path, tag: str = "") -> None:
 
 
 class Lazy[T]:
-    """
-    Lazily evaluated values, retrieve value with Lazy[T]()
-    """
+    """Lazily evaluated values, retrieve value with `Lazy[T]()`"""
 
     __slots__ = ("_done", "_fn", "_lock", "_value")
 

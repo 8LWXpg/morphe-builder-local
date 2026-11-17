@@ -47,10 +47,13 @@ def main(app: list[str]):
 
     tag = datetime.now().strftime("%Y.%m.%d")
     notes = "\n\n".join(changelog)
-    files = [str(p) for p in outs if p is not None]
+    files = [p for p in outs if p is not None]
     if len(files) == 0:
         logger.error("all build failed")
         return
+
+    for file in files:
+        logger.info("Built %s", file.name)
 
     exists = (
         subprocess.run(
