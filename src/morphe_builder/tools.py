@@ -72,7 +72,7 @@ class ApkFetch:
 
     @staticmethod
     def _install_curl(install_dir: Path) -> Path:
-        """Installs curl-impersonate at `./{install_dir}/ver` and deletes older ones"""
+        """Installs curl-impersonate at `./{install_dir}/{ver}` and deletes older ones"""
         bin = f"{CURL_IMPERSONATE_WRAPPER}{'.bat' if sys.platform == 'win32' else ''}"
         target = {
             "linux": "linux-musl",

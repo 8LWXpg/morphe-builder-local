@@ -68,7 +68,7 @@ class App:
 
     def _parse_ver(self):
         """
-        parse output that should looks like following:
+        Parse output that should looks like following:
 
         ```
         INFO: Morphe data root: bin/MorpheApp/morphe-desktop/morphe-data (JAR-adjacent)
