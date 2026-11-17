@@ -104,9 +104,9 @@ class ApkFetch:
     def get(self, pkg: str, version: ApkVersion, out_dir: Path) -> Path | None:
         out_apk = out_dir.glob(f"{pkg}-{version}-*")
         for p in out_apk:
-            logger.info(f"found {p} on disk")
+            logger.info(f"Found {p} on disk")
             return p
-        logger.info(f"downloading {pkg}")
+        logger.info(f"Downloading {pkg}")
         try:
             apk = Apk.from_json(
                 subprocess.run(
@@ -129,7 +129,7 @@ class ApkFetch:
                     env={**os.environ, "APK_FETCH_CURL": str(self.curl.absolute())},
                 ).stdout.strip()
             )
-            logger.info(f"downloaded {apk.path} from {apk.provider}")
+            logger.info(f"Downloaded {apk.path} from {apk.provider}")
             return apk.path
         except Exception:
             return None

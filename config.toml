@@ -16,7 +16,7 @@ archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.y
 [Music]
 package-id = "com.google.android.apps.youtube.music"
 archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.apps.youtube.music"
-excluded-patches = ["Change header", "Custom branding"]
+options = { appIcon = "original" }
 
 [Reddit]
 package-id = "com.reddit.frontpage"

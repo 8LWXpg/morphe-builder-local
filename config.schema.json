@@ -74,6 +74,14 @@
         "title": "Exclusive-Patches",
         "type": "boolean"
       },
+      "options": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "default": {},
+        "title": "Options",
+        "type": "object"
+      },
       "patcher-args": {
         "default": [],
         "items": {

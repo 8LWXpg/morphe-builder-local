@@ -1,5 +1,6 @@
 import logging
 import subprocess
+import traceback
 from dataclasses import dataclass
 from itertools import chain
 from pathlib import Path
@@ -48,6 +49,7 @@ class App:
                     *chain.from_iterable(("-d", d) for d in self.spec.excluded_patches),
                     *chain.from_iterable(("-e", e) for e in self.spec.included_patches),
                     *(["--exclusive"] if self.spec.exclusive_patches else []),
+                    *([f"-O{k}={v}" for k, v in self.spec.options.items()]),
                     "--keystore=Morphe.keystore",
                     "-p",
                     self.patch.mpp,
@@ -61,6 +63,7 @@ class App:
             logger.info("built %s", out.name)
             return out
         except Exception:
+            traceback.print_exc(limit=3)
             return None
 
     def _parse_ver(self):

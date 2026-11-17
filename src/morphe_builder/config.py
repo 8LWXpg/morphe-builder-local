@@ -88,6 +88,7 @@ class AppConfig(Model):
     included_patches: list[str] = []
     excluded_patches: list[str] = []
     exclusive_patches: bool = False
+    options: dict[str, str] = {}
     patcher_args: list[str] = []
 
 
