@@ -47,7 +47,7 @@ class App:
                     apk,
                     *chain.from_iterable(("-d", d) for d in self.spec.excluded_patches),
                     *chain.from_iterable(("-e", e) for e in self.spec.included_patches),
-                    *(["--excllusive"] if self.spec.exclusive_patches else []),
+                    *(["--exclusive"] if self.spec.exclusive_patches else []),
                     "--keystore=Morphe.keystore",
                     "-p",
                     self.patch.mpp,

@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 CURL_IMPERSONATE_VER = "v2.3.1"
 CURL_IMPERSONATE_WRAPPER = "curl_chrome131_android"
-APK_FETCH_VER = "v1.3.1"
+APK_FETCH_VER = "v1.3.2"
 
 
 class Apk(BaseModel):
@@ -108,7 +108,7 @@ class ApkFetch:
             return p
         logger.info(f"downloading {pkg}")
         try:
-            return Apk.from_json(
+            apk = Apk.from_json(
                 subprocess.run(
                     [
                         self.path,
@@ -128,7 +128,9 @@ class ApkFetch:
                     text=True,
                     env={**os.environ, "APK_FETCH_CURL": str(self.curl.absolute())},
                 ).stdout.strip()
-            ).path
+            )
+            logger.info(f"downloaded {apk.path} from {apk.provider}")
+            return apk.path
         except Exception:
             return None
 

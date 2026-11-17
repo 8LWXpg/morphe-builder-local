@@ -14,10 +14,9 @@ package-id = "com.google.android.youtube"
 archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.youtube"
 
 [Music]
-patch-source = "anddea/revanced-patches"
 package-id = "com.google.android.apps.youtube.music"
 archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.apps.youtube.music"
-included-patches = ["Disable music video in album"]
+excluded-patches = ["Change header", "Custom branding"]
 
 [Reddit]
 package-id = "com.reddit.frontpage"
