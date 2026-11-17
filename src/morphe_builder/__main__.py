@@ -15,9 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def config_to_app(cfg: Config, patches: dict[PatchKey, Patch], cli: Path) -> list[App]:
-    return [
-        app for _, a in cfg.apps.items() if (app := App.from_appconfig(a, patches, cli)) is not None
-    ]
+    return [app for a in cfg.apps if (app := App.from_appconfig(a, patches, cli)) is not None]
 
 
 @click.command()

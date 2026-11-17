@@ -1,10 +1,10 @@
 import logging
 import tomllib
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Annotated, Any, Final, Self
+from typing import Annotated, Final, NamedTuple, Self
 
-from pydantic import BaseModel, ConfigDict, StringConstraints, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 from .util import BIN_DIR, gh, gh_asset
 
@@ -74,49 +74,101 @@ class PatchKey:
 
 
 class Model(BaseModel):
-    model_config = ConfigDict(extra="forbid", alias_generator=lambda name: name.replace("_", "-"))
+    model_config = ConfigDict(extra="forbid", alias_generator=lambda n: n.replace("_", "-"))
 
 
-class AppConfig(Model):
+FilePatch = str | dict[str, dict[str, str]]  # "Name" | { "Name" = { opt = "v" } }
+
+
+class FileApp(Model):
     enabled: bool = True
     package_id: str
-    app_name: str
+    app_name: str | None = None
     patch_source: str = "MorpheApp/morphe-patches"
     patch_version: PatchVersion = "latest"
     version: ApkVersion = "latest"
     archive_dlurl: str = ""
-    included_patches: list[str] = []
+    included_patches: list[FilePatch] = []
     excluded_patches: list[str] = []
     exclusive_patches: bool = False
-    options: dict[str, str] = {}
     patcher_args: list[str] = []
 
 
-class Config(Model):
+class FileConfig(Model):
+    model_config = ConfigDict(extra="allow")  # merged with Model's config
+
     parallel_jobs: int = 1
     cli_version: PatchVersion = "latest"
-    apps: dict[str, AppConfig]
+    # every unknown top-level table is an app
+    # pyrefly: ignore[bad-override-mutable-attribute]
+    __pydantic_extra__: dict[str, FileApp] = Field(init=False)
 
-    @model_validator(mode="before")
+
+class PatchInclude(NamedTuple):
+    name: str
+    options: dict[str, str]
+
     @classmethod
-    def _group_apps(cls, raw: Any) -> Any:
-        if not isinstance(raw, dict):
-            return raw
-        scalars = {k: v for k, v in raw.items() if not isinstance(v, dict)}
-        apps = {
-            name: {"app-name": name, **table}
-            for name, table in raw.items()
-            if isinstance(table, dict) and table.get("enabled") in (True, None)
-        }
-        return {**scalars, "apps": apps}
+    def from_file(cls, v: FilePatch) -> Self:
+        if isinstance(v, str):
+            return cls(v, {})
+        if len(v) != 1:
+            raise ValueError(f"patch table must have exactly one key, got {list(v)}")
+        ((name, opts),) = v.items()
+        return cls(name, opts)
+
+
+@dataclass(frozen=True)
+class AppConfig:
+    app_name: str
+    package_id: str
+    patch_source: str
+    patch_version: str
+    version: str
+    archive_dlurl: str
+    included_patches: list[PatchInclude]
+    excluded_patches: list[str]
+    exclusive_patches: bool
+    patcher_args: list[str]
+
+    @classmethod
+    def from_file(cls, name: str, f: FileApp) -> Self:
+        return cls(
+            app_name=f.app_name or name,
+            package_id=f.package_id,
+            patch_source=f.patch_source,
+            patch_version=f.patch_version,
+            version=f.version,
+            archive_dlurl=f.archive_dlurl,
+            included_patches=[PatchInclude.from_file(p) for p in f.included_patches],
+            excluded_patches=f.excluded_patches,
+            exclusive_patches=f.exclusive_patches,
+            patcher_args=f.patcher_args,
+        )
+
+
+@dataclass
+class Config:
+    parallel_jobs: int
+    cli_version: str
+    apps: list[AppConfig] = field(default_factory=list)
+
+    @classmethod
+    def from_file(cls, f: FileConfig) -> Self:
+        extra = f.__pydantic_extra__ or {}
+        return cls(
+            f.parallel_jobs,
+            f.cli_version,
+            [AppConfig.from_file(n, a) for n, a in extra.items() if a.enabled],
+        )
 
     @classmethod
     def load(cls, path: str | Path = "config.toml") -> Self:
-        with Path(path).open("rb") as f:
-            return cls.model_validate(tomllib.load(f))
+        with Path(path).open("rb") as fh:
+            return cls.from_file(FileConfig.model_validate(tomllib.load(fh)))
 
     def patches(self) -> set[PatchKey]:
-        return {PatchKey(a.patch_source, a.patch_version) for a in self.apps.values() if a.enabled}
+        return {PatchKey(a.patch_source, a.patch_version) for a in self.apps}
 
     def fetch_cli(self) -> tuple[Path, str]:
         morphe_desktop: Final = "MorpheApp/morphe-desktop"

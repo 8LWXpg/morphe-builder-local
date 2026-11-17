@@ -46,10 +46,7 @@ class App:
                     self.cli,
                     "patch",
                     apk,
-                    *chain.from_iterable(("-d", d) for d in self.spec.excluded_patches),
-                    *chain.from_iterable(("-e", e) for e in self.spec.included_patches),
-                    *(["--exclusive"] if self.spec.exclusive_patches else []),
-                    *([f"-O{k}={v}" for k, v in self.spec.options.items()]),
+                    *self._patch_args(),
                     "--keystore=Morphe.keystore",
                     "-p",
                     self.patch.mpp,
@@ -65,6 +62,17 @@ class App:
         except Exception:
             traceback.print_exc(limit=3)
             return None
+
+    def _patch_args(self) -> list[str]:
+        """Generate args for `excluded_patches`, `included_patches` and `exclusive_patches`"""
+        s = self.spec
+        args = list(chain.from_iterable(("-d", d) for d in s.excluded_patches))
+        for name, opts in s.included_patches:
+            args += ["-e", name]
+            args += [f"-O{k}={v}" for k, v in opts.items()]
+        if self.spec.exclusive_patches:
+            args.append("--exclusive")
+        return args
 
     def _parse_ver(self):
         """
